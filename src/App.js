@@ -3,7 +3,7 @@ import "./App.css";
 import Nav from "./components/Nav";
 import Header from "./components/Header";
 import Reflections from "./components/Reflections";
-import Map from "./components/Map";
+import PublicMap from './components/PublicMap'
 
 function App() {
   return (
@@ -11,7 +11,7 @@ function App() {
       <Nav />
       <Header />
       <Reflections />
-      <Map />
+      <PublicMap />
     </div>
   );
 }
