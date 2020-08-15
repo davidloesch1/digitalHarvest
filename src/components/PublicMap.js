@@ -10,6 +10,7 @@ import Style from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
 import CircleStyle from "ol/style/Circle";
+import GeoJSON from 'ol/format/GeoJSON';
 
 class PublicMap extends Component {
   constructor(props) {
@@ -73,14 +74,18 @@ class PublicMap extends Component {
     this.draw.on("drawend", (e) => {
       this.lastFeature = e.feature
       console.log(e.feature.getGeometry().getCoordinates());
-
+      let writer = new GeoJSON()
+      let geoString = writer.writeFeature(e.feature)
+      console.log(geoString)
       this.olmap.removeInteraction(this.draw)
     });
 
     this.draw.on('drawstart', (e) => {
+    //clears out the previous polygon
       this.source.clear()
     })
 
+    // this allows the mouse to draw the polygon on the map
     this.olmap.addInteraction(this.draw);
 
     // let modify = new Modify({ source: source });
@@ -95,6 +100,8 @@ class PublicMap extends Component {
   };
 
   componentDidMount() {
+
+    //adds the map to the "map" div that is now mounted.
     this.olmap.setTarget("map");
 
     // Listen to map changes
@@ -120,9 +127,11 @@ class PublicMap extends Component {
   render() {
     this.updateMap(); // Update map on render?
     return (
+      <>
       <div id="map" style={{ width: "100%", height: "360px" }}>
         <button onClick={(e) => this.userAction()}>setState on click</button>
       </div>
+      </>
     );
   }
 }
