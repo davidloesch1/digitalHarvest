@@ -4,6 +4,7 @@ import Nav from "./components/Nav";
 import Header from "./components/Header";
 import Reflections from "./components/Reflections";
 import Map from "./components/Map";
+import Footer from "./components/Footer";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       <Header />
       <Reflections />
       <Map />
+      <Footer />
     </div>
   );
 }
