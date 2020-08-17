@@ -10,12 +10,15 @@ import Style from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
 import CircleStyle from "ol/style/Circle";
-import GeoJSON from 'ol/format/GeoJSON';
+import GeoJSON from "ol/format/GeoJSON";
 
 class PublicMap extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      name: "",
+      geojsonCurrent: null,
+      geojsonArray: [],
       center: [1000, 0],
       zoom: 1,
       vector: null,
@@ -25,11 +28,11 @@ class PublicMap extends Component {
       }),
       vector: null,
     };
-    this.lastFeature = null
+    this.lastFeature = null;
     this.source = new VectorSource({
-      wrapX: false
+      wrapX: false,
     });
-    this.draw = null
+    this.draw = null;
     this.vector = new VectorLayer({
       source: this.source,
       style: new Style({
@@ -57,13 +60,13 @@ class PublicMap extends Component {
         zoom: this.state.zoom,
       }),
     });
-    this.olmap.addInteraction(this.modify)
+    this.olmap.addInteraction(this.modify);
   }
 
   addInteraction = () => {
     let source = this.source;
-    if(this.draw){
-      this.olmap.removeInteraction(this.draw)
+    if (this.draw) {
+      this.olmap.removeInteraction(this.draw);
     }
 
     this.draw = new Draw({
@@ -72,18 +75,22 @@ class PublicMap extends Component {
     });
 
     this.draw.on("drawend", (e) => {
-      this.lastFeature = e.feature
-      console.log(e.feature.getGeometry().getCoordinates());
-      let writer = new GeoJSON()
-      let geoString = writer.writeFeature(e.feature)
-      console.log(geoString)
-      this.olmap.removeInteraction(this.draw)
+      this.lastFeature = e.feature;
+      console.log(e.feature);
+      // let writer = new GeoJSON();
+      // let geoString = writer.writeFeature(e.feature);
+      // console.log(geoString);
+      this.setState({
+        geojsonCurrent: e.feature,
+      });
+      this.olmap.removeInteraction(this.draw);
     });
 
-    this.draw.on('drawstart', (e) => {
-    //clears out the previous polygon
-      this.source.clear()
-    })
+    this.draw.on("drawstart", (e) => {
+      //clears out the previous polygon
+      this.setState({ geojsonCurrent: null });
+      this.source.clear();
+    });
 
     // this allows the mouse to draw the polygon on the map
     this.olmap.addInteraction(this.draw);
@@ -100,7 +107,6 @@ class PublicMap extends Component {
   };
 
   componentDidMount() {
-
     //adds the map to the "map" div that is now mounted.
     this.olmap.setTarget("map");
 
@@ -112,6 +118,28 @@ class PublicMap extends Component {
     });
     // this.addInteraction();
   }
+
+  handleChange = (e) => {
+    this.setState({
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  addName = () => {
+    let copy = this.state.geojsonCurrent;
+    if (copy) {
+      copy.setProperties({ name: this.state.name });
+      let writer = new GeoJSON();
+      let geoString = writer.writeFeature(copy);
+      console.log(geoString);
+      this.setState({
+        geojsonArray: [...this.state.geojsonArray, geoString],
+        name: "",
+        geojsonCurrent: null,
+      });
+      this.source.clear();
+    }
+  };
 
   shouldComponentUpdate(nextProps, nextState) {
     let center = this.olmap.getView().getCenter();
@@ -125,12 +153,37 @@ class PublicMap extends Component {
   }
 
   render() {
-    this.updateMap(); // Update map on render?
     return (
       <>
-      <div id="map" style={{ width: "100%", height: "360px" }}>
-        <button onClick={(e) => this.userAction()}>setState on click</button>
-      </div>
+        <div
+          id="map"
+          style={{ width: "100%", height: "360px" }}
+          className="container"
+        >
+          <br></br>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={(e) => this.userAction()}
+          >
+            Draw New Polygon
+          </button>
+          <input
+            type="text"
+            className="form-control"
+            onChange={this.handleChange}
+            value={this.state.name}
+            name="name"
+          ></input>
+          <button
+            type="submit"
+            onClick={this.addName}
+            className="btn btn-primary"
+          >
+            Add Name
+          </button>
+          <br></br>
+          <br></br>
+        </div>
       </>
     );
   }
