@@ -12,11 +12,10 @@ function Header() {
         </p>
         <hr className="my-4" />
         <p>
-          Read my recount of our conversation, and why I felt it necessary to
-          deliver the "whoa" factor.
+         Here is my weekend playaround with learning about GeoJSON objects, Shape files, and how to store them in a database
         </p>
-        <a className="btn btn-primary btn-lg" href="#" role="button">
-          Click here for Conversation Reflection
+        <a className="btn btn-primary btn-lg" href="/mapper" role="button">
+          Polygon Mapper
         </a>
       </div>
     </>

@@ -11,6 +11,9 @@ import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
 import CircleStyle from "ol/style/Circle";
 import GeoJSON from "ol/format/GeoJSON";
+import { apiURL } from "../url";
+import { Alert } from "reactstrap";
+const axios = require("axios");
 
 class PublicMap extends Component {
   constructor(props) {
@@ -27,6 +30,7 @@ class PublicMap extends Component {
         source: new OSM(),
       }),
       vector: null,
+      visible: false,
     };
     this.lastFeature = null;
     this.source = new VectorSource({
@@ -62,6 +66,13 @@ class PublicMap extends Component {
     });
     this.olmap.addInteraction(this.modify);
   }
+  onAlert = () => {
+    this.setState({ visible: true }, () => {
+      window.setTimeout(() => {
+        this.setState({ visible: false });
+      }, 3000);
+    });
+  };
 
   addInteraction = () => {
     let source = this.source;
@@ -76,10 +87,6 @@ class PublicMap extends Component {
 
     this.draw.on("drawend", (e) => {
       this.lastFeature = e.feature;
-      console.log(e.feature);
-      // let writer = new GeoJSON();
-      // let geoString = writer.writeFeature(e.feature);
-      // console.log(geoString);
       this.setState({
         geojsonCurrent: e.feature,
       });
@@ -119,72 +126,85 @@ class PublicMap extends Component {
     // this.addInteraction();
   }
 
-  handleChange = (e) => {
-    this.setState({
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  addName = () => {
+  addName = async () => {
     let copy = this.state.geojsonCurrent;
     if (copy) {
       copy.setProperties({ name: this.state.name });
-      let writer = new GeoJSON();
-      let geoString = writer.writeFeature(copy);
-      console.log(geoString);
-      this.setState({
-        geojsonArray: [...this.state.geojsonArray, geoString],
-        name: "",
-        geojsonCurrent: null,
+      await this.setState({
+        geojsonCurrent: copy,
       });
+      await this.addPolygons();
       this.source.clear();
     }
   };
 
-  shouldComponentUpdate(nextProps, nextState) {
-    let center = this.olmap.getView().getCenter();
-    let zoom = this.olmap.getView().getZoom();
-    if (center === nextState.center && zoom === nextState.zoom) return false;
-    return true;
-  }
+  addPolygons = async () => {
+    let feature = this.state.geojsonCurrent;
+    let coordinates = feature.getGeometry().getCoordinates(); // console.log(coordinates)
+    let name = this.state.name;
+    await this.setState({
+      name: "",
+    });
+    let obj = {
+      name: name,
+      coordinates: coordinates,
+    };
+    // let writer = new GeoJSON();
+    // let geoString = writer.writeFeature(obj);
+    axios
+      .post(apiURL + "/map", obj)
+      .then((res) => {
+        if(res.status === 200) this.onAlert()
+      })
+      
+  };
 
   userAction() {
     this.addInteraction();
   }
+  handleChange(e) {
+    this.setState({
+      [e.target.name]: e.target.value,
+    });
+  }
 
   render() {
     return (
-      <>
-        <div
-          id="map"
-          style={{ width: "100%", height: "360px" }}
-          className="container"
-        >
-          <br></br>
+      <div className="row">
+        <div className="col-8">
+          <div
+            id="map"
+            style={{ width: "100%", height: "500px" }}
+            className="container"
+          ></div>
+        </div>
+        <div className="col-4 bg-light">
           <button
-            className="btn btn-primary btn-sm"
+            className="btn btn-primary btn-sm my-3"
             onClick={(e) => this.userAction()}
           >
             Draw New Polygon
           </button>
           <input
-            type="text"
             className="form-control"
-            onChange={this.handleChange}
+            type="text"
+            placeholder="Name of polygon"
             value={this.state.name}
+            onChange={this.handleChange.bind(this)}
             name="name"
-          ></input>
+          />
           <button
             type="submit"
             onClick={this.addName}
-            className="btn btn-primary"
+            className="btn btn-primary my-3"
           >
-            Add Name
+            Submit
           </button>
-          <br></br>
-          <br></br>
+          <Alert color="success" isOpen={this.state.visible}>
+            Map Added successfully!
+          </Alert>
         </div>
-      </>
+      </div>
     );
   }
 }
