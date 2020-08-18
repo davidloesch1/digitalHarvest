@@ -10,7 +10,6 @@ import Style from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
 import CircleStyle from "ol/style/Circle";
-import GeoJSON from "ol/format/GeoJSON";
 import { apiURL } from "../url";
 import { Alert } from "reactstrap";
 const axios = require("axios");
@@ -29,7 +28,6 @@ class PublicMap extends Component {
       raster: new TileLayer({
         source: new OSM(),
       }),
-      vector: null,
       visible: false,
     };
     this.lastFeature = null;
